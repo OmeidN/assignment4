@@ -93,12 +93,94 @@ Node<ItemType>* LinkedBag<ItemType>::getMiddle(Node<ItemType>* head) {
     return slow;
 }
 
-//Extra Credit -- TO DO: implement quick sort and change its prototype 
-//                       if you need to.
+//Extra Credit -- Implementation of quick sort
 template<class ItemType>
-void LinkedBag<ItemType>::quickSort(){
-	
+void LinkedBag<ItemType>::quickSort() {
+    if (headPtr == nullptr || headPtr->getNext() == nullptr) {
+        return; // Already sorted if empty or single element
+    }
+    headPtr = quickSortRec(headPtr, getTail(headPtr));
 }
+
+template<class ItemType>
+Node<ItemType>* LinkedBag<ItemType>::getTail(Node<ItemType>* head) {
+    Node<ItemType>* current = head;
+    while (current != nullptr && current->getNext() != nullptr) {
+        current = current->getNext();
+    }
+    return current;
+}
+
+template<class ItemType>
+Node<ItemType>* LinkedBag<ItemType>::partition(Node<ItemType>* head, Node<ItemType>* end, 
+                                             Node<ItemType>** newHead, Node<ItemType>** newEnd) {
+    Node<ItemType>* pivot = end;
+    Node<ItemType>* prev = nullptr;
+    Node<ItemType>* curr = head;
+    Node<ItemType>* tail = pivot;
+    
+    // Iterate through the list and partition around the pivot
+    while (curr != pivot) {
+        if (curr->getItem() < pivot->getItem()) {
+            if (*newHead == nullptr) {
+                *newHead = curr;  // First node less than pivot
+            }
+            prev = curr;
+            curr = curr->getNext();
+        } else {
+            // Move the node to the tail of the list
+            if (prev) {
+                prev->setNext(curr->getNext());
+            }
+            Node<ItemType>* temp = curr->getNext();
+            curr->setNext(nullptr);
+            tail->setNext(curr);
+            tail = curr;
+            curr = temp;
+        }
+    }
+
+    // Set the new tail to the pivot
+    if (*newHead == nullptr) {
+        *newHead = pivot;
+    }
+    *newEnd = tail;
+    return pivot;
+}
+
+template<class ItemType>
+Node<ItemType>* LinkedBag<ItemType>::quickSortRec(Node<ItemType>* head, Node<ItemType>* end) {
+    // Base case: empty or single element list
+    if (!head || head == end) return head;
+
+    Node<ItemType> *newHead = nullptr, *newEnd = nullptr;
+    
+    // Partition the list around a pivot
+    Node<ItemType>* pivot = partition(head, end, &newHead, &newEnd);
+    
+    // If the pivot is not the first element, recursively sort the left part
+    if (newHead != pivot) {
+        Node<ItemType>* temp = newHead;
+        // Find the node before pivot
+        while (temp->getNext() != pivot) {
+            temp = temp->getNext();
+        }
+        temp->setNext(nullptr);  // Split the list
+        
+        // Recursively sort the list before pivot
+        newHead = quickSortRec(newHead, temp);
+        
+        // Connect the sorted part to pivot
+        temp = getTail(newHead);
+        temp->setNext(pivot);
+    }
+
+    // Recursively sort the right part
+    pivot->setNext(quickSortRec(pivot->getNext(), newEnd));
+    
+    return newHead;
+}
+
 // --------------------------------------------------------------
 
 template<class ItemType>
